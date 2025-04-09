@@ -27,7 +27,7 @@ class VCA {
 };
 
 class FMOperator {
-    constructor(audioContext, baseFrequency = 440, ratio = 1.0, envelopeSettings = { attack: 0.3, decay: 0.3, sustain: 0.5, release: 1.0 }) {
+    constructor(audioContext, baseFrequency = 220, ratio = 1.0, envelopeSettings = { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.5 }) {
         this.audioContext = audioContext;
 
         // Frequency settings
@@ -104,6 +104,11 @@ class FMOperator {
         this.level.gain.setValueAtTime(level, this.audioContext.currentTime);
     }
 
+    // Connect to mod matrix gain
+    connect(gainNode){
+        this.envelope.connect(gainNode);
+    }
+
     // Modulate another operator
     connectToOperator(operator) {
         this.envelope.connect(operator.oscillator.frequency);
@@ -156,19 +161,37 @@ vca = new VCA(audioContext);
 
 let operators = [];
 
-for (let i = 0; i<4; i++){
+const nOperators = 4;
+
+for (let i = 0; i < nOperators; i++){
     operators.push(new FMOperator(audioContext));
 }
 
-
 // create Mod Matrix //todo
-operators.forEach(i=>{
-    operators.forEach(j=>{
-        let modmatrix = document.querySelector("#modmatrix");
+operators.forEach((o,i)=>{
+    let modmatrix = document.querySelector("#modmatrix");
+    operators.forEach((p,j)=>{
+        // there seems to be some limitations with feedback, so here i made some exceptions to the mod matrix for it to work
+        if(o === p) return; //avoid feedback for now
+        if(i < j) return; //avoid feedback for now
+        let gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+        o.connect(gainNode);
+        gainNode.connect(p.oscillator.frequency);
         let slider = document.createElement('input');
         slider.type = 'range';
+        slider.min = 0;
+        slider.max = 1000;
+        slider.value = 0;
+        slider.step = 1;
+        slider.title = `${i}->${j}`;
+        slider.addEventListener('change',()=>{
+            gainNode.gain.setValueAtTime(slider.value, audioContext.currentTime);
+        });
         modmatrix.appendChild(slider);
     });
+    let br = document.createElement('br');
+    modmatrix.appendChild(br);
 });
 
 trigger.addEventListener("click", (e)=>{
@@ -184,6 +207,12 @@ trigger.addEventListener("click", (e)=>{
 release.addEventListener("click", (e)=>{
     operators.forEach(o=>{o.releaseEnvelope()});
 });
+
+setInterval(()=>{
+trigger.click();
+setTimeout(()=>{release.click();},500)
+}
+, 2000);
 
 }catch(e){
 

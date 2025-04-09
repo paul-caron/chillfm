@@ -5,24 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FM Synth</title>
 <style>
+body {
+	background: linear-gradient(-45deg, #0be, #abc, #ddeadd, #a55);
+	background-size: 300% 400%;
+	animation: gradient 10s ease infinite;
+	height: 100vh;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
 </style>
 </head>
 <body>
-<h1>FM Lab</h1>
+<h2>FM Lab</h2>
 <hr/>
 <div id="vca">
-<h2>VCA</h2>
+<h3>VCA</h3>
 </div>
 <hr/>
-<h2>Operators</h2>
+<h3>Operators</h3>
 <div id="ratio">
-<h3>Ratio</h3>
+<h5>Ratio</h5>
 </div>
 <div id="level">
-<h3>Output Mixer Levels</h3>
+<h5>Output Mixer Levels</h5>
 </div>
 <div id="modmatrix">
-<h3>Mod Matrix</h3>
+<h5>Mod Matrix</h5>
 </div>
 <hr/>
 <button id="trigger">trigger</button>
