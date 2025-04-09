@@ -160,6 +160,17 @@ for (let i = 0; i<4; i++){
     operators.push(new FMOperator(audioContext));
 }
 
+
+// create Mod Matrix //todo
+operators.forEach(i=>{
+    operators.forEach(j=>{
+        let modmatrix = document.querySelector("#modmatrix");
+        let slider = document.createElement('input');
+        slider.type = 'range';
+        modmatrix.appendChild(slider);
+    });
+});
+
 trigger.addEventListener("click", (e)=>{
     if(audioContext.state === "suspended"){
         audioContext.resume().then(()=>{
