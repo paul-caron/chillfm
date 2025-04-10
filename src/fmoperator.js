@@ -1,7 +1,6 @@
 "use strict";
 
-let vca; //master volume 
-
+let vca; //master volume and TODO master envelope
 
 class VCA {
     constructor(audioContext) {
@@ -27,7 +26,7 @@ class VCA {
 };
 
 class FMOperator {
-    constructor(audioContext, baseFrequency = 220, ratio = 1.0, envelopeSettings = { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.5 }) {
+    constructor(audioContext, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.4, decay: 0.4, sustain: 0.6, release: 1.0 }) {
         this.audioContext = audioContext;
 
         // Frequency settings
@@ -58,8 +57,6 @@ class FMOperator {
 
         // Start the oscillator by default
         this.oscillator.start();
-
-
 
         // Control Sliders
         let ratioDiv = document.querySelector("#ratio");
@@ -109,22 +106,14 @@ class FMOperator {
         this.envelope.connect(gainNode);
     }
 
-    // Modulate another operator
-    connectToOperator(operator) {
-        this.envelope.connect(operator.oscillator.frequency);
-    }
-
-    // Unmodulate other operator
-    disconnectFromOperator(operator) {
-        this.envelope.disconnect(operator.oscillator.frequency);
-    }
-
     // Trigger the envelope (Attack, Decay, Sustain, Release)
-    triggerEnvelope() {
+    triggerEnvelope(noteNumber) {
+        const baseFrequency = 110 * (2 ** (noteNumber/12));
+        this.setBaseFrequency(baseFrequency);
         const t = this.audioContext.currentTime;
         this.envelope.gain.cancelScheduledValues(t);
         this.envelope.gain.setValueAtTime(this.envelope.gain.value, t);
-        this.envelope.gain.linearRampToValueAtTime(1, t + this.attackTime);
+        this.envelope.gain.linearRampToValueAtTime(1, t+0.01 + this.attackTime);
         this.envelope.gain.linearRampToValueAtTime(this.sustainLevel, t + this.attackTime + this.decayTime);
     }
 
@@ -133,21 +122,12 @@ class FMOperator {
         const t = this.audioContext.currentTime;
         this.envelope.gain.cancelScheduledValues(t);
         this.envelope.gain.setValueAtTime(this.envelope.gain.value, t);
-        this.envelope.gain.linearRampToValueAtTime(0.000, t + this.releaseTime);
+        this.envelope.gain.linearRampToValueAtTime(0.000, t+0.01 + this.releaseTime);
     }
 
-    // Disconnect the operator
-    disconnect() {
-        this.oscillator.stop();
-        this.level.disconnect();
-        this.envelope.disconnect();
-    }
 };
 
 try{
-
-let trigger = document.querySelector("#trigger");
-let release = document.querySelector("#release");
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -194,28 +174,52 @@ operators.forEach((o,i)=>{
     modmatrix.appendChild(br);
 });
 
-trigger.addEventListener("click", (e)=>{
+function trig(noteNumber){
     if(audioContext.state === "suspended"){
         audioContext.resume().then(()=>{
-            operators.forEach(o=>{o.triggerEnvelope()});
+            operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
         });
     }else{
-        operators.forEach(o=>{o.triggerEnvelope()});
+        operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
     }
-});
-
-release.addEventListener("click", (e)=>{
-    operators.forEach(o=>{o.releaseEnvelope()});
-});
-
-setInterval(()=>{
-trigger.click();
-setTimeout(()=>{release.click();},500)
 }
-, 2000);
+
+function rel(){
+    operators.forEach(o=>{o.releaseEnvelope()});
+}
+
+let pressedKeys = {};
+window.addEventListener('keyup', (event) => {
+    pressedKeys[event.key] = false;
+    rel();
+});
+
+window.addEventListener('keydown', (event) => {
+    if(pressedKeys[event.key]) return;
+    pressedKeys[event.key] = true;
+    let noteNumber = 0;
+    switch(event.key){
+        case 'a': noteNumber = 0;break;
+        case 'w': noteNumber = 1;break;
+        case 's': noteNumber = 2;break;
+        case 'e': noteNumber = 3;break;
+        case 'd': noteNumber = 4;break;
+        case 'f': noteNumber = 5;break;
+        case 't': noteNumber = 6;break;
+        case 'g': noteNumber = 7;break;
+        case 'y': noteNumber = 8;break;
+        case 'h': noteNumber = 9;break;
+        case 'u': noteNumber = 10;break;
+        case 'j': noteNumber = 11;break;
+        case 'k': noteNumber = 12;break;
+        case 'o': noteNumber = 13;break;
+        case 'l': noteNumber = 14;break;
+        case 'p': noteNumber = 15;break;
+        case ';': noteNumber = 16;break;
+    }
+    trig(noteNumber);
+});
 
 }catch(e){
-
-alert(e);
-
+    alert(e);
 }
