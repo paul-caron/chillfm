@@ -1,29 +1,121 @@
 "use strict";
 
+let voices = [];
+let nVoices = 2;
 
 
-let vca; //master volume and TODO master envelope
+// HTML elements setup
+
+function createOperatorsModMatrixElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    let modmatrix = document.querySelector("#modmatrix");
+    operatorSets[0].forEach((o,i)=>{
+        operatorSets[0].forEach((p,j)=>{
+            // there seems to be some limitations with feedback, so here i made some exceptions to the mod matrix for it to work
+            if(o === p) return; //avoid feedback for now
+            if(i < j) return; //avoid feedback for now
+
+            let slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = 0;
+            slider.max = 1000;
+            slider.value = 0;
+            slider.step = 1;
+            slider.title = `${i}->${j}`;
+
+            slider.dataset.from = i;
+            slider.dataset.to = j;
+
+            modmatrix.appendChild(slider);
+        });
+        let br = document.createElement('br');
+        modmatrix.appendChild(br);
+    });
+
+       //eventListeners...TODO
+     //   let gainNode = o.audioContext.createGain();
+     //   gainNode.gain.setValueAtTime(1.0, o.audioContext.currentTime);
+     //   o.connect(gainNode);
+     //   gainNode.connect(p.oscillator.frequency);
+        //TODO bring this event listener outside
+     //   slider.addEventListener('change', ()=>{
+     //       gainNode.gain.setValueAtTime(slider.value, o.audioContext.currentTime);
+     //   });
+}
+
+
+function createOperatorsLevelElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator, id)=>{
+        // Output Level Sliders
+        let levelDiv = document.querySelector("#level");
+        let levelInput = document.createElement('input');
+        levelInput.type = 'range';
+        levelInput.title = '0.0';
+        levelInput.min = 0;
+        levelInput.max = 1;
+        levelInput.step = 0.01;
+        levelInput.value = operator.level.gain.value;
+        levelInput.addEventListener('change',()=>{
+            levelInput.title = levelInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.setLevel(levelInput.value);
+            });
+        });
+        levelDiv.appendChild(levelInput);
+    });
+}
+
+
+function createOperatorsRatioElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator,id)=>{
+        let ratioDiv = document.querySelector("#ratio");
+        let ratioInput = document.createElement('input');
+        ratioInput.type = 'number';
+        ratioInput.value = operator.ratio;
+        ratioInput.addEventListener('change',()=>{
+            ratioInput.title = ratioInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.setRatio(ratioInput.value);
+            });
+        });
+        ratioDiv.appendChild(ratioInput);
+    });
+}
+
+function createVCAElements(){
+    let vcas = voices.map(voice=>voice.vca);
+
+    // Control Sliders
+    let vcaDiv = document.querySelector('#vca');
+    let vcaInput = document.createElement('input');
+    vcaInput.type = 'range';
+    vcaInput.title = 'volume: 1.0';
+    vcaInput.value = 1.0;
+    vcaInput.step = 0.01;
+    vcaInput.min = 0;
+    vcaInput.max = 1.0;
+    vcaInput.addEventListener('change',()=>{
+        vcaInput.title = 'volume: ' + vcaInput.value;
+        vcas.forEach(vca=>{
+            vca.gain.gain.setValueAtTime(vcaInput.value, vca.audioContext.currentTime);
+        });
+    });
+    vcaDiv.appendChild(vcaInput);
+}
 
 class VCA {
     constructor(audioContext) {
         this.audioContext = audioContext
         this.gain = this.audioContext.createGain();
         this.gain.connect(this.audioContext.destination);
-
-        // Control Sliders
-        let vcaDiv = document.querySelector('#vca');
-        let vcaInput = document.createElement('input');
-        vcaInput.type = 'range';
-        vcaInput.title = 'volume: 1.0';
-        vcaInput.value = 1.0;
-        vcaInput.step = 0.01;
-        vcaInput.min = 0;
-        vcaInput.max = 1.0;
-        vcaInput.addEventListener('change',()=>{
-            vcaInput.title = 'volume: ' + vcaInput.value;
-            this.gain.gain.setValueAtTime(vcaInput.value, this.audioContext.currentTime);
-        });
-        vcaDiv.appendChild(vcaInput);
     }
 };
 
@@ -60,30 +152,6 @@ class FMOperator {
 
         // Start the oscillator by default
         this.oscillator.start();
-
-        // Control Sliders
-        let ratioDiv = document.querySelector("#ratio");
-        let ratioInput = document.createElement('input');
-        ratioInput.type = 'number';
-        ratioInput.value = ratio;
-        ratioInput.addEventListener('change',()=>{this.setRatio(ratioInput.value);});
-        ratioDiv.appendChild(ratioInput);
-
-        // Output Level Sliders
-        let levelDiv = document.querySelector("#level");
-        let levelInput = document.createElement('input');
-        levelInput.type = 'range';
-        levelInput.title = '0.0';
-        levelInput.min = 0;
-        levelInput.max = 1;
-        levelInput.step = 0.01;
-        levelInput.value = this.level.gain.value;
-        levelDiv.appendChild(levelInput);
-        levelInput.addEventListener('change',()=>{
-            levelInput.title = levelInput.value;
-            this.setLevel(levelInput.value);
-        });
-
 
     }
 
@@ -136,36 +204,10 @@ class Voice{
         this.vca = new VCA(this.audioContext);
         this.operators = [];
         for (let i = 0; i < 4; i++){
-            this.operators.push(new FMOperator(this.vca));
+            let operator = new FMOperator(this.vca);
+            operator.rank = i;
+            this.operators.push(operator);
         }
-        this.setupModMatrix();
-    }
-    setupModMatrix(){
-        this.operators.forEach((o,i)=>{
-        let modmatrix = document.querySelector("#modmatrix");
-        this.operators.forEach((p,j)=>{
-        // there seems to be some limitations with feedback, so here i made some exceptions to the mod matrix for it to work
-        if(o === p) return; //avoid feedback for now
-        if(i < j) return; //avoid feedback for now
-        let gainNode = this.audioContext.createGain();
-        gainNode.gain.setValueAtTime(1.0, this.audioContext.currentTime);
-        o.connect(gainNode);
-        gainNode.connect(p.oscillator.frequency);
-        let slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = 0;
-        slider.max = 1000;
-        slider.value = 0;
-        slider.step = 1;
-        slider.title = `${i}->${j}`;
-        slider.addEventListener('change',()=>{
-            gainNode.gain.setValueAtTime(slider.value, this.audioContext.currentTime);
-        });
-        modmatrix.appendChild(slider);
-        });
-        let br = document.createElement('br');
-        modmatrix.appendChild(br);
-        });
     }
 
     trig(noteNumber){
@@ -195,15 +237,30 @@ if (!AudioContext) {
 
 // Create an instance of AudioContext
 const audioContext = new AudioContext({latencyHint: 'interactive',sampleRate:96000});
-//vca = new VCA(audioContext);
-
-let voice = new Voice(audioContext);
 
 
+
+// Create Voices
+for(let i = 0; i < nVoices; i++){
+  let voice = new Voice(audioContext);
+  voices.push(voice);
+}
+
+
+
+// HTML Elements Init
+createVCAElements();
+createOperatorsRatioElements();
+createOperatorsLevelElements();
+createOperatorsModMatrixElements();
+
+
+
+// EVENTS
 let pressedKeys = {};
 window.addEventListener('keyup', (event) => {
     pressedKeys[event.key] = false;
-    voice.rel();
+    voices[0].rel();  //TODO SWITCH BETWEEN VOICES
 });
 
 window.addEventListener('keydown', (event) => {
@@ -229,7 +286,7 @@ window.addEventListener('keydown', (event) => {
         case 'p': noteNumber = 15;break;
         case ';': noteNumber = 16;break;
     }
-    voice.trig(noteNumber);
+    voices[0].trig(noteNumber); // TODO SWITCH BETWEEN VOICES
 });
 
 }catch(e){
