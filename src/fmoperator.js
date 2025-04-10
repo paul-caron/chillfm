@@ -1,5 +1,7 @@
 "use strict";
 
+
+
 let vca; //master volume and TODO master envelope
 
 class VCA {
@@ -26,8 +28,9 @@ class VCA {
 };
 
 class FMOperator {
-    constructor(audioContext, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.4, decay: 0.4, sustain: 0.6, release: 1.0 }) {
-        this.audioContext = audioContext;
+    constructor(vca, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.4, decay: 0.4, sustain: 0.6, release: 1.0 }) {
+        this.vca = vca;
+        this.audioContext = this.vca.audioContext;
 
         // Frequency settings
         this.baseFrequency = baseFrequency;
@@ -52,7 +55,7 @@ class FMOperator {
         // Create Level Gain Node for output volume control
         this.level = this.audioContext.createGain();
         this.level.gain.setValueAtTime(0, this.audioContext.currentTime);
-        this.level.connect(vca.gain);
+        this.level.connect(this.vca.gain);
         this.envelope.connect(this.level);
 
         // Start the oscillator by default
@@ -75,11 +78,11 @@ class FMOperator {
         levelInput.max = 1;
         levelInput.step = 0.01;
         levelInput.value = this.level.gain.value;
+        levelDiv.appendChild(levelInput);
         levelInput.addEventListener('change',()=>{
             levelInput.title = levelInput.value;
             this.setLevel(levelInput.value);
         });
-        levelDiv.appendChild(levelInput);
 
 
     }
@@ -127,35 +130,25 @@ class FMOperator {
 
 };
 
-try{
-
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-
-if (!AudioContext) {
-  throw("Web Audio API is not supported in this browser.");
-}
-
-// Create an instance of AudioContext
-const audioContext = new AudioContext({latencyHint: 'interactive',sampleRate:96000});
-vca = new VCA(audioContext);
-
-let operators = [];
-
-const nOperators = 4;
-
-for (let i = 0; i < nOperators; i++){
-    operators.push(new FMOperator(audioContext));
-}
-
-// create Mod Matrix //todo
-operators.forEach((o,i)=>{
-    let modmatrix = document.querySelector("#modmatrix");
-    operators.forEach((p,j)=>{
+class Voice{
+    constructor(audioContext){
+        this.audioContext = audioContext;
+        this.vca = new VCA(this.audioContext);
+        this.operators = [];
+        for (let i = 0; i < 4; i++){
+            this.operators.push(new FMOperator(this.vca));
+        }
+        this.setupModMatrix();
+    }
+    setupModMatrix(){
+        this.operators.forEach((o,i)=>{
+        let modmatrix = document.querySelector("#modmatrix");
+        this.operators.forEach((p,j)=>{
         // there seems to be some limitations with feedback, so here i made some exceptions to the mod matrix for it to work
         if(o === p) return; //avoid feedback for now
         if(i < j) return; //avoid feedback for now
-        let gainNode = audioContext.createGain();
-        gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+        let gainNode = this.audioContext.createGain();
+        gainNode.gain.setValueAtTime(1.0, this.audioContext.currentTime);
         o.connect(gainNode);
         gainNode.connect(p.oscillator.frequency);
         let slider = document.createElement('input');
@@ -166,32 +159,51 @@ operators.forEach((o,i)=>{
         slider.step = 1;
         slider.title = `${i}->${j}`;
         slider.addEventListener('change',()=>{
-            gainNode.gain.setValueAtTime(slider.value, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(slider.value, this.audioContext.currentTime);
         });
         modmatrix.appendChild(slider);
-    });
-    let br = document.createElement('br');
-    modmatrix.appendChild(br);
-});
-
-function trig(noteNumber){
-    if(audioContext.state === "suspended"){
-        audioContext.resume().then(()=>{
-            operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
         });
-    }else{
-        operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
+        let br = document.createElement('br');
+        modmatrix.appendChild(br);
+        });
     }
+
+    trig(noteNumber){
+        if(this.audioContext.state === "suspended"){
+            this.audioContext.resume().then(()=>{
+                this.operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
+            });
+        }else{
+            this.operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
+        }
+    }
+
+    rel(){
+        this.operators.forEach(o=>{o.releaseEnvelope()});
+    }
+
+
+};
+
+try{
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+if (!AudioContext) {
+  throw("Web Audio API is not supported in this browser.");
 }
 
-function rel(){
-    operators.forEach(o=>{o.releaseEnvelope()});
-}
+// Create an instance of AudioContext
+const audioContext = new AudioContext({latencyHint: 'interactive',sampleRate:96000});
+//vca = new VCA(audioContext);
+
+let voice = new Voice(audioContext);
+
 
 let pressedKeys = {};
 window.addEventListener('keyup', (event) => {
     pressedKeys[event.key] = false;
-    rel();
+    voice.rel();
 });
 
 window.addEventListener('keydown', (event) => {
@@ -217,9 +229,10 @@ window.addEventListener('keydown', (event) => {
         case 'p': noteNumber = 15;break;
         case ';': noteNumber = 16;break;
     }
-    trig(noteNumber);
+    voice.trig(noteNumber);
 });
 
 }catch(e){
     alert(e);
+    throw (e);
 }
