@@ -2,7 +2,7 @@
 
 let voices = [];
 let nVoices = 2;
-
+let nOperatorsPerVoice = 3;
 
 // HTML elements setup
 
@@ -217,7 +217,7 @@ class Voice{
         this.audioContext = audioContext;
         this.vca = new VCA(this.audioContext);
         this.operators = [];
-        for (let i = 0; i < 4; i++){
+        for (let i = 0; i < nOperatorsPerVoice; i++){
             let operator = new FMOperator(this.vca);
             operator.rank = i;
             this.operators.push(operator);
@@ -303,12 +303,19 @@ window.addEventListener('keydown', (event) => {
     voices[0].trig(noteNumber); // TODO SWITCH BETWEEN VOICES
 });
 
+
+let trigIndex =0;
+let relIndex = 0;
+
 window.addEventListener('touchstart', (event) => {
-    voices[1].trig(0);
+    console.log(trigIndex);
+    relIndex = trigIndex;
+    voices[trigIndex++].trig(0);
+    trigIndex %= nVoices;
 });
 
 window.addEventListener('touchend', (event) => {
-    voices[1].rel();
+    voices[relIndex].rel();
 });
 
 }catch(e){
