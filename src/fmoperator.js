@@ -134,7 +134,7 @@ class VCA {
 };
 
 class FMOperator {
-    constructor(vca, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.4, decay: 0.4, sustain: 0.6, release: 1.0 }) {
+    constructor(vca, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.4, decay: 0.4, sustain: 0.7, release: 2.0 }) {
         this.vca = vca;
         this.audioContext = this.vca.audioContext;
 
@@ -308,9 +308,9 @@ let trigIndex =0;
 let relIndex = 0;
 
 window.addEventListener('touchstart', (event) => {
-    console.log(trigIndex);
+    let noteNumber = trigIndex * 12;
     relIndex = trigIndex;
-    voices[trigIndex++].trig(0);
+    voices[trigIndex++].trig(noteNumber);
     trigIndex %= nVoices;
 });
 
