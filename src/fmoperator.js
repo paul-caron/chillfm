@@ -34,15 +34,29 @@ function createOperatorsModMatrixElements(){
         modmatrix.appendChild(br);
     });
 
-       //eventListeners...TODO
-     //   let gainNode = o.audioContext.createGain();
-     //   gainNode.gain.setValueAtTime(1.0, o.audioContext.currentTime);
-     //   o.connect(gainNode);
-     //   gainNode.connect(p.oscillator.frequency);
-        //TODO bring this event listener outside
-     //   slider.addEventListener('change', ()=>{
-     //       gainNode.gain.setValueAtTime(slider.value, o.audioContext.currentTime);
-     //   });
+    // Create Gain Nodes for each slider and hook up the operators
+    let modmatrixSliders = Array.from(document.querySelectorAll("#modmatrix > input"));
+    modmatrixSliders.forEach(slider => {
+        let sliderGainNodes = [];
+        let i = slider.dataset.from;
+        let j = slider.dataset.to;
+        voices.forEach(voice=>{
+                let o = voice.operators[i];
+                let p = voice.operators[j];
+                let gainNode = o.audioContext.createGain();
+                gainNode.gain.setValueAtTime(1.0, o.audioContext.currentTime);
+                o.connect(gainNode);
+                gainNode.connect(p.oscillator.frequency);
+                sliderGainNodes.push(gainNode);
+        });
+        slider.addEventListener('change', ()=>{
+            sliderGainNodes.forEach(gainNode=>{
+                gainNode.gain.setValueAtTime(slider.value, voices[0].audioContext.currentTime);
+            });
+        });
+    });
+
+
 }
 
 
@@ -287,6 +301,14 @@ window.addEventListener('keydown', (event) => {
         case ';': noteNumber = 16;break;
     }
     voices[0].trig(noteNumber); // TODO SWITCH BETWEEN VOICES
+});
+
+window.addEventListener('touchstart', (event) => {
+    voices[1].trig(0);
+});
+
+window.addEventListener('touchend', (event) => {
+    voices[1].rel();
 });
 
 }catch(e){
