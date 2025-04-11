@@ -1,10 +1,109 @@
 "use strict";
 
 let voices = [];
-let nVoices = 2;
-let nOperatorsPerVoice = 3;
+let nVoices = 4;
+let nOperatorsPerVoice = 4;
 
 // HTML elements setup
+
+
+function createOperatorsReleaseElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator, id)=>{
+        // release Time Sliders
+        let releaseDiv = document.querySelector("#release");
+        let releaseInput = document.createElement('input');
+        releaseInput.type = 'range';
+        releaseInput.title = '0.0';
+        releaseInput.min = 0.05;
+        releaseInput.max = 3;
+        releaseInput.step = 0.01;
+        releaseInput.value = operator.releaseTime;
+        releaseInput.addEventListener('change',()=>{
+            releaseInput.title = releaseInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.releaseTime = parseFloat(releaseInput.value);
+            });
+        });
+        releaseDiv.appendChild(releaseInput);
+    });
+}
+
+
+function createOperatorsSustainElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator, id)=>{
+        // sustain Time Sliders
+        let sustainDiv = document.querySelector("#sustain");
+        let sustainInput = document.createElement('input');
+        sustainInput.type = 'range';
+        sustainInput.title = '0.0';
+        sustainInput.min = 0.02;
+        sustainInput.max = 1.0;
+        sustainInput.step = 0.01;
+        sustainInput.value = operator.sustainLevel;
+        sustainInput.addEventListener('change',()=>{
+            sustainInput.title = sustainInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.sustainLevel = parseFloat(sustainInput.value);
+            });
+        });
+        sustainDiv.appendChild(sustainInput);
+    });
+}
+
+function createOperatorsDecayElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator, id)=>{
+        // decay Time Sliders
+        let decayDiv = document.querySelector("#decay");
+        let decayInput = document.createElement('input');
+        decayInput.type = 'range';
+        decayInput.title = '0.0';
+        decayInput.min = 0.05;
+        decayInput.max = 3;
+        decayInput.step = 0.01;
+        decayInput.value = operator.decayTime;
+        decayInput.addEventListener('change',()=>{
+            decayInput.title = decayInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.decayTime = parseFloat(decayInput.value);
+            });
+        });
+        decayDiv.appendChild(decayInput);
+    });
+}
+
+
+function createOperatorsAttackElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator, id)=>{
+        // Attack Time Sliders
+        let attackDiv = document.querySelector("#attack");
+        let attackInput = document.createElement('input');
+        attackInput.type = 'range';
+        attackInput.title = '0.0';
+        attackInput.min = 0.05;
+        attackInput.max = 3;
+        attackInput.step = 0.01;
+        attackInput.value = operator.attackTime;
+        attackInput.addEventListener('change',()=>{
+            attackInput.title = attackInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.attackTime = parseFloat(attackInput.value);
+            });
+        });
+        attackDiv.appendChild(attackInput);
+    });
+}
 
 function createOperatorsModMatrixElements(){
     let operatorSets = voices.map(voice=>voice.operators);
@@ -134,7 +233,7 @@ class VCA {
 };
 
 class FMOperator {
-    constructor(vca, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.4, decay: 0.4, sustain: 0.7, release: 2.0 }) {
+    constructor(vca, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.1, decay: 0.4, sustain: 0.7, release: 2.0 }) {
         this.vca = vca;
         this.audioContext = this.vca.audioContext;
 
@@ -267,14 +366,22 @@ createVCAElements();
 createOperatorsRatioElements();
 createOperatorsLevelElements();
 createOperatorsModMatrixElements();
-
+createOperatorsAttackElements();
+createOperatorsDecayElements();
+createOperatorsSustainElements();
+createOperatorsReleaseElements();
 
 
 // EVENTS
+
+let trigIndex =0;
+let relIndex = 0;
+
+
 let pressedKeys = {};
 window.addEventListener('keyup', (event) => {
     pressedKeys[event.key] = false;
-    voices[0].rel();  //TODO SWITCH BETWEEN VOICES
+    voices[relIndex].rel();  //TODO SWITCH BETWEEN VOICES
 });
 
 window.addEventListener('keydown', (event) => {
@@ -300,12 +407,12 @@ window.addEventListener('keydown', (event) => {
         case 'p': noteNumber = 15;break;
         case ';': noteNumber = 16;break;
     }
-    voices[0].trig(noteNumber); // TODO SWITCH BETWEEN VOICES
+    relIndex = trigIndex;
+    voices[trigIndex++].trig(noteNumber); // TODO SWITCH BETWEEN VOICES
+    trigIndex %= nVoices;
 });
 
 
-let trigIndex =0;
-let relIndex = 0;
 
 window.addEventListener('touchstart', (event) => {
     let noteNumber = trigIndex * 12;
