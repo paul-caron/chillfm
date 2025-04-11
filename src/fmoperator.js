@@ -203,28 +203,28 @@ function createOperatorsRatioElements(){
     });
 }
 
-function createVCAElements(){
-    let vcas = voices.map(voice=>voice.vca);
+function createMasterElements(){
+    let masters = voices.map(voice=>voice.master);
 
     // Control Sliders
-    let vcaDiv = document.querySelector('#vca');
-    let vcaInput = document.createElement('input');
-    vcaInput.type = 'range';
-    vcaInput.title = 'volume: 1.0';
-    vcaInput.value = 1.0;
-    vcaInput.step = 0.01;
-    vcaInput.min = 0;
-    vcaInput.max = 1.0;
-    vcaInput.addEventListener('change',()=>{
-        vcaInput.title = 'volume: ' + vcaInput.value;
-        vcas.forEach(vca=>{
-            vca.gain.gain.setValueAtTime(vcaInput.value, vca.audioContext.currentTime);
+    let masterDiv = document.querySelector('#master');
+    let masterInput = document.createElement('input');
+    masterInput.type = 'range';
+    masterInput.title = 'volume: 1.0';
+    masterInput.value = 1.0;
+    masterInput.step = 0.01;
+    masterInput.min = 0;
+    masterInput.max = 1.0;
+    masterInput.addEventListener('change',()=>{
+        masterInput.title = 'volume: ' + masterInput.value;
+        masters.forEach(master=>{
+            master.gain.gain.setValueAtTime(masterInput.value, master.audioContext.currentTime);
         });
     });
-    vcaDiv.appendChild(vcaInput);
+    masterDiv.appendChild(masterInput);
 }
 
-class VCA {
+class Master {
     constructor(audioContext) {
         this.audioContext = audioContext
         this.gain = this.audioContext.createGain();
@@ -233,9 +233,9 @@ class VCA {
 };
 
 class FMOperator {
-    constructor(vca, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.1, decay: 0.4, sustain: 0.7, release: 2.0 }) {
-        this.vca = vca;
-        this.audioContext = this.vca.audioContext;
+    constructor(master, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.1, decay: 0.4, sustain: 0.7, release: 2.0 }) {
+        this.master = master;
+        this.audioContext = this.master.audioContext;
 
         // Frequency settings
         this.baseFrequency = baseFrequency;
@@ -260,7 +260,7 @@ class FMOperator {
         // Create Level Gain Node for output volume control
         this.level = this.audioContext.createGain();
         this.level.gain.setValueAtTime(0, this.audioContext.currentTime);
-        this.level.connect(this.vca.gain);
+        this.level.connect(this.master.gain);
         this.envelope.connect(this.level);
 
         // Start the oscillator by default
@@ -314,10 +314,10 @@ class FMOperator {
 class Voice{
     constructor(audioContext){
         this.audioContext = audioContext;
-        this.vca = new VCA(this.audioContext);
+        this.master = new Master(this.audioContext);
         this.operators = [];
         for (let i = 0; i < nOperatorsPerVoice; i++){
-            let operator = new FMOperator(this.vca);
+            let operator = new FMOperator(this.master);
             operator.rank = i;
             this.operators.push(operator);
         }
@@ -362,7 +362,7 @@ for(let i = 0; i < nVoices; i++){
 
 
 // HTML Elements Init
-createVCAElements();
+createMasterElements();
 createOperatorsRatioElements();
 createOperatorsLevelElements();
 createOperatorsModMatrixElements();
