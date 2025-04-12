@@ -1,11 +1,12 @@
 "use strict";
 
+// Globals
+
 let voices = [];
-let nVoices = 4;
-let nOperatorsPerVoice = 4;
+let nVoices = 17;
+let nOperatorsPerVoice = 3;
 
-// HTML elements setup
-
+// HTML elements setup utils
 
 function createOperatorsReleaseElements(){
     let operatorSets = voices.map(voice=>voice.operators);
@@ -112,10 +113,13 @@ function createOperatorsModMatrixElements(){
     let modmatrix = document.querySelector("#modmatrix");
     operatorSets[0].forEach((o,i)=>{
         operatorSets[0].forEach((p,j)=>{
-            // there seems to be some limitations with feedback, so here i made some exceptions to the mod matrix for it to work
+            // there seems to be some limitations with feedback,
+            // feedback seems to make the audiocontext crash
+            // so here i avoided feedback loop for the mod matrix for it to work
             if(o === p) return; //avoid feedback for now
             if(i < j) return; //avoid feedback for now
 
+            // Control slider
             let slider = document.createElement('input');
             slider.type = 'range';
             slider.min = 0;
@@ -172,7 +176,7 @@ function createOperatorsLevelElements(){
         levelInput.min = 0;
         levelInput.max = 1;
         levelInput.step = 0.01;
-        levelInput.value = operator.level.gain.value;
+        levelInput.value = operator.levelValue;
         levelInput.addEventListener('change',()=>{
             levelInput.title = levelInput.value;
             operators.filter((o)=>o.rank==id).forEach((o)=>{
@@ -224,6 +228,7 @@ function createMasterElements(){
     masterDiv.appendChild(masterInput);
 }
 
+// volume master, end node
 class Master {
     constructor(audioContext) {
         this.audioContext = audioContext
@@ -234,11 +239,16 @@ class Master {
 
 class FMOperator {
     constructor(master, baseFrequency = 110, ratio = 1.0, envelopeSettings = { attack: 0.1, decay: 0.4, sustain: 0.7, release: 2.0 }) {
+        // the volume master end node
         this.master = master;
+
+        // a reference to the audiocontext
         this.audioContext = this.master.audioContext;
 
         // Frequency settings
         this.baseFrequency = baseFrequency;
+
+        // fm ratio (1,2,3,4,... or fractions also works like 0.5, 0.25, 0.125,...)
         this.ratio = ratio;
 
         // Envelope settings
@@ -258,8 +268,9 @@ class FMOperator {
         this.oscillator.connect(this.envelope);
 
         // Create Level Gain Node for output volume control
+        this.levelValue = 0;
         this.level = this.audioContext.createGain();
-        this.level.gain.setValueAtTime(0, this.audioContext.currentTime);
+        this.level.gain.setValueAtTime(this.levelValue, this.audioContext.currentTime);
         this.level.connect(this.master.gain);
         this.envelope.connect(this.level);
 
@@ -282,6 +293,7 @@ class FMOperator {
 
     // Set frequency for this operator
     setLevel(level) {
+        this.levelValue = level;
         this.level.gain.setValueAtTime(level, this.audioContext.currentTime);
     }
 
@@ -323,6 +335,7 @@ class Voice{
         }
     }
 
+    // note trigger
     trig(noteNumber){
         if(this.audioContext.state === "suspended"){
             this.audioContext.resume().then(()=>{
@@ -333,6 +346,7 @@ class Voice{
         }
     }
 
+    // note release
     rel(){
         this.operators.forEach(o=>{o.releaseEnvelope()});
     }
@@ -374,14 +388,34 @@ createOperatorsReleaseElements();
 
 // EVENTS
 
-let trigIndex =0;
-let relIndex = 0;
-
+function keyToVoice(key){
+    let vNumber = 0;
+    switch(key){
+        case 'a': vNumber = 0;break;
+        case 'w': vNumber = 1;break;
+        case 's': vNumber = 2;break;
+        case 'e': vNumber = 3;break;
+        case 'd': vNumber = 4;break;
+        case 'f': vNumber = 5;break;
+        case 't': vNumber = 6;break;
+        case 'g': vNumber = 7;break;
+        case 'y': vNumber = 8;break;
+        case 'h': vNumber = 9;break;
+        case 'u': vNumber = 10;break;
+        case 'j': vNumber = 11;break;
+        case 'k': vNumber = 12;break;
+        case 'o': vNumber = 13;break;
+        case 'l': vNumber = 14;break;
+        case 'p': vNumber = 15;break;
+        case ';': vNumber = 16;break;
+    }
+    return voices[vNumber];
+}
 
 let pressedKeys = {};
 window.addEventListener('keyup', (event) => {
     pressedKeys[event.key] = false;
-    voices[relIndex].rel();  //TODO SWITCH BETWEEN VOICES
+    keyToVoice(event.key).rel();
 });
 
 window.addEventListener('keydown', (event) => {
@@ -407,12 +441,14 @@ window.addEventListener('keydown', (event) => {
         case 'p': noteNumber = 15;break;
         case ';': noteNumber = 16;break;
     }
-    relIndex = trigIndex;
-    voices[trigIndex++].trig(noteNumber); // TODO SWITCH BETWEEN VOICES
-    trigIndex %= nVoices;
+    keyToVoice(event.key).trig(noteNumber);
 });
 
 
+// garbage for testing on my phone
+
+let trigIndex =0;
+let relIndex = 0;
 
 window.addEventListener('touchstart', (event) => {
     let noteNumber = trigIndex * 12;
