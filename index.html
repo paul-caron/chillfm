@@ -6,15 +6,21 @@
     <title>FM Synth</title>
 <style>
 body {
-	background: linear-gradient(-45deg, #0be, #abc, #ddeadd, #a55);
-	background-size: 300% 400%;
+	background: linear-gradient(-45deg, #3e5, #abc, #555, #252);
+	background-size: 200% 400%;
 	animation: gradient 10s ease infinite;
 	height: 100vh;
 }
 
-div {
+#operator > div {
     display: inline-block;
+    background-color: #777;
+    border-radius: 5px;
+    padding: 5px;
+    border: 1px solid black;
 }
+
+
 
 @keyframes gradient {
 	0% {
@@ -34,10 +40,14 @@ div {
 
 <h2>Chill FM Lab</h2>
 <hr/>
-
+<div id="synth">
+<div>
+<canvas id="oscilloscope"></canvas>
+</div>
 <div id="master">
 <h3>Master</h3>
 </div>
+
 <hr/>
 
 <div id="operator">
@@ -73,18 +83,20 @@ div {
 <hr/>
 
 </div>
-
+</div>
 
 <div id="patch-memory">
 <h3>Patch Memory</h3>
 <p>Save your sound design to be able to reload your settings later.</p>
-<button id="save-button">save</button>
-<input placeholder="patch name"></input>
-<button id="load-button">load</button>
+<button id="save-button" onclick="savePatch();">save</button>
+<input id="patch-name" placeholder="patch name"></input>
+<button id="load-button" onclick="loadPatch();">load</button>
 <select>
 </select>
 </div>
 
+
+<script src="src/patchmemory.js"></script>
 <script src="src/fmoperator.js"></script>
 </body>
 </html>

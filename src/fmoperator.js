@@ -463,6 +463,10 @@ window.addEventListener('touchend', (event) => {
     voices[relIndex].rel();
 });
 
+
+// patches list
+updatePatchesList();
+
 }catch(e){
     alert(e);
     throw (e);
