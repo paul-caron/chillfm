@@ -230,10 +230,10 @@ function createMasterElements(){
 
 // volume master, end node
 class Master {
-    constructor(audioContext) {
+    constructor(audioContext, outputNode) {
         this.audioContext = audioContext
         this.gain = this.audioContext.createGain();
-        this.gain.connect(this.audioContext.destination);
+        this.gain.connect(outputNode);
     }
 };
 
@@ -326,9 +326,9 @@ class FMOperator {
 };
 
 class Voice{
-    constructor(audioContext){
+    constructor(audioContext, outputNode){
         this.audioContext = audioContext;
-        this.master = new Master(this.audioContext);
+        this.master = new Master(this.audioContext, outputNode);
         this.operators = [];
         for (let i = 0; i < nOperatorsPerVoice; i++){
             let operator = new FMOperator(this.master);
@@ -367,11 +367,12 @@ if (!AudioContext) {
 // Create an instance of AudioContext
 const audioContext = new AudioContext({latencyHint: 'interactive',sampleRate:96000});
 
-
+initOscilloscope(audioContext);
+requestAnimationFrame(oscilloscopeLoop);
 
 // Create Voices
 for(let i = 0; i < nVoices; i++){
-  let voice = new Voice(audioContext);
+  let voice = new Voice(audioContext, oscilloscope);
   voices.push(voice);
 }
 
