@@ -12,6 +12,10 @@ body {
 	height: 100vh;
 }
 
+div {
+    display: inline-block;
+}
+
 @keyframes gradient {
 	0% {
 		background-position: 0% 50%;
@@ -27,19 +31,24 @@ body {
 </style>
 </head>
 <body>
-<h2>FM Lab</h2>
+
+<h2>Chill FM Lab</h2>
 <hr/>
+
 <div id="master">
 <h3>Master</h3>
 </div>
 <hr/>
+
+<div id="operator">
 <h3>Operators</h3>
-<div id="ratio">
-<h5>Ratio</h5>
-</div>
 
 <div id="level">
 <h5>Output Mixer Levels</h5>
+</div>
+
+<div id="ratio">
+<h5>Ratio</h5>
 </div>
 
 <div id="attack">
@@ -62,6 +71,20 @@ body {
 <h5>Mod Matrix</h5>
 </div>
 <hr/>
+
+</div>
+
+
+<div id="patch-memory">
+<h3>Patch Memory</h3>
+<p>Save your sound design to be able to reload your settings later.</p>
+<button id="save-button">save</button>
+<input placeholder="patch name"></input>
+<button id="load-button">load</button>
+<select>
+</select>
+</div>
+
 <script src="src/fmoperator.js"></script>
 </body>
 </html>

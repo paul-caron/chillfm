@@ -4,7 +4,7 @@
 
 let voices = [];
 let nVoices = 17;
-let nOperatorsPerVoice = 3;
+let nOperatorsPerVoice = 4;
 
 // HTML elements setup utils
 
@@ -259,7 +259,9 @@ class FMOperator {
 
         // Create Oscillator Node
         this.oscillator = this.audioContext.createOscillator();
-        this.oscillator.type = 'sine'; // Default waveform is sine
+        this.detune = (Math.random() - 0.5) * 10;
+        this.oscillator.detune.setValueAtTime(this.detune, this.audioContext.currentTime);
+        this.oscillator.type = 'square'; // Default waveform is sine
         this.oscillator.frequency.setValueAtTime(this.baseFrequency*this.ratio, this.audioContext.currentTime);
 
         // Envelope: Gain control for Attack, Decay, Sustain, Release
