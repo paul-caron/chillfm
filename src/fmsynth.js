@@ -6,7 +6,7 @@ let voices = [];
 let nVoices = 17;
 let nOperatorsPerVoice = 4;
 let oscillatorTypes = ['square','square','square','square'];
-
+let tempSettings = [];
 
 // HTML elements setup utils
 
@@ -18,6 +18,7 @@ function createOperatorsWaveformElements(){
         // release Time Sliders
         let waveformDiv = document.querySelector("#waveform");
         let waveformSelect = document.createElement('select');
+        waveformSelect.id = "waveform-" + id;
         ['square','sawtooth','triangle','sine'].forEach((waveform) => {
             let option = document.createElement('option');
             option.innerText = waveform;
@@ -27,8 +28,20 @@ function createOperatorsWaveformElements(){
         waveformSelect.value = operator.oscillator.type;
         waveformSelect.addEventListener('change', ()=>{
             oscillatorTypes[id] = waveformSelect.value;
+            //save current settings into tempSettings
+            let inputs = Array.from(document.querySelectorAll("#synth input"));
+            tempSettings = inputs.map(i=>i.value);
+
             //redo entire synth after waveform change because oscillator types cannot be changed after creation
             initSynth(operator.master.audioContext, oscilloscope);
+
+            //reload settings from tempSettings
+            inputs = Array.from(document.querySelectorAll("#synth input"));
+            inputs.forEach((input,i)=>{
+                input.value = tempSettings[i];
+                input.dispatchEvent(new Event('change'));
+            });
+
         });
         waveformDiv.appendChild(waveformSelect);
     });
@@ -222,6 +235,7 @@ function createOperatorsRatioElements(){
     operatorSets[0].forEach((operator,id)=>{
         let ratioDiv = document.querySelector("#ratio");
         let ratioInput = document.createElement('input');
+        ratioInput.id = "ratio-" + id;
         ratioInput.type = 'number';
         ratioInput.value = operator.ratio;
         ratioInput.addEventListener('change',()=>{
@@ -354,6 +368,7 @@ class FMOperator {
     }
     disconnect(){
         this.envelope.disconnect();
+        this.level.disconnect();
         this.oscillator.disconnect();
         this.oscillator.stop();
     }
@@ -417,7 +432,7 @@ function initSynth(audioContext, outputNode){
   inputs.forEach(i=>{i.outerHTML = ''});
 
   // Init Voices
-  initVoices(audioContext, outputNode);
+  initVoices(audioContext, oscilloscope);
 
   // HTML Elements Init
   createMasterElements();

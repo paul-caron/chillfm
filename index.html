@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FM Synth</title>
@@ -96,7 +97,7 @@ body {
 <input id="patch-name" placeholder="patch name"></input>
 <h4>Loading Patch</h4>
 <button id="load-button" onclick="loadPatch();">load</button>
-<select>
+<select id="patches-select">
 </select>
 </div>
 
@@ -105,6 +106,7 @@ body {
 <script src="src/fmsynth.js"></script>
 <script src="src/events.js"></script>
 <script src="src/main.js"></script>
+
 
 </body>
 </html>

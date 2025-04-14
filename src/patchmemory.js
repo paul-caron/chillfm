@@ -24,11 +24,13 @@ function updatePatchesList(){
     let select = document.querySelector("#patch-memory select");
     select.innerHTML = "";
     let patches = JSON.parse(localStorage.getItem('patches'));
-    patches.forEach(patch => {
-        let option = document.createElement("option");
-        option.innerText = patch['name'];
-        option.value = JSON.stringify(patch['values']);
-        select.appendChild(option);
-    });
+    if(patches){
+        patches.forEach(patch => {
+            let option = document.createElement("option");
+            option.innerText = patch['name'];
+            option.value = JSON.stringify(patch['values']);
+            select.appendChild(option);
+        });
+    }
 }
 
