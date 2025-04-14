@@ -3,9 +3,9 @@
 // Globals
 
 let voices = [];
-let nVoices = 17;
+let nVoices = 10;
 let nOperatorsPerVoice = 4;
-let oscillatorTypes = ['square','square','square','square'];
+let oscillatorTypes = ['sine','sine','sine','sine'];
 let tempSettings = [];
 
 // HTML elements setup utils
@@ -387,6 +387,7 @@ class Voice{
             operator.rank = i;
             this.operators.push(operator);
         }
+        this.playing = false;
     }
     // note trigger
     trig(noteNumber){
@@ -397,10 +398,16 @@ class Voice{
         }else{
             this.operators.forEach(o=>{o.triggerEnvelope(noteNumber)});
         }
+        this.playing = true; //voice is unavailable for reuse until flag is false
     }
     // note release
     rel(){
         this.operators.forEach(o=>{o.releaseEnvelope()});
+        // get longuest releaseTime from all operators
+        let rt = 0;
+        this.operators.forEach(o=>{rt = Math.max(rt,o.releaseTime)});
+        // reset 'playing' flag after release time
+        setTimeout(()=>{this.playing = false;},rt*1000);
     }
 
     disconnect(){

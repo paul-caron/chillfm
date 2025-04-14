@@ -1,12 +1,27 @@
+function getVoice(){
+   for(let i = 0 ; i < nVoices; i++){
+       let v = voices[i];
+       if(i.playing === false){
+          voices.splice(i,1); // remove voice
+          voices.push(v); // put voice at back of the queue
+          return v;
+       }
+   }
+   // if all voices are playing, pick first one
+   let v = voices.shift();
+   voices.push(v); // push at back of the queue
+   return v;
+}
+
 let pressedKeys = {};
 window.addEventListener('keyup', (event) => {
-    pressedKeys[event.key] = false;
-    keyToVoice(event.key).rel();
+    let voice = pressedKeys[event.key] ;
+    voice.rel();
+    pressedKeys[event.key] = null;
 });
 
 window.addEventListener('keydown', (event) => {
     if(pressedKeys[event.key]) return;
-    pressedKeys[event.key] = true;
     let noteNumber = 0;
     switch(event.key){
         case 'a': noteNumber = 0;break;
@@ -27,29 +42,8 @@ window.addEventListener('keydown', (event) => {
         case 'p': noteNumber = 15;break;
         case ';': noteNumber = 16;break;
     }
-    keyToVoice(event.key).trig(noteNumber);
+    let voice = getVoice();
+    pressedKeys[event.key] = voice;
+    voice.trig(noteNumber);
 });
 
-function keyToVoice(key){
-    let vNumber = 0;
-    switch(key){
-        case 'a': vNumber = 0;break;
-        case 'w': vNumber = 1;break;
-        case 's': vNumber = 2;break;
-        case 'e': vNumber = 3;break;
-        case 'd': vNumber = 4;break;
-        case 'f': vNumber = 5;break;
-        case 't': vNumber = 6;break;
-        case 'g': vNumber = 7;break;
-        case 'y': vNumber = 8;break;
-        case 'h': vNumber = 9;break;
-        case 'u': vNumber = 10;break;
-        case 'j': vNumber = 11;break;
-        case 'k': vNumber = 12;break;
-        case 'o': vNumber = 13;break;
-        case 'l': vNumber = 14;break;
-        case 'p': vNumber = 15;break;
-        case ';': vNumber = 16;break;
-    }
-    return voices[vNumber];
-}
