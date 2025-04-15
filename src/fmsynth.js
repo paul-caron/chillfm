@@ -9,6 +9,25 @@ let oscillatorTypes = ['sine','sine','sine','sine'];
 let tempSettings = [];
 
 // HTML elements setup utils
+function createOperatorsDetuneElements(){
+    let operatorSets = voices.map(voice=>voice.operators);
+    let operators = operatorSets.flat();
+    // Control Sliders
+    operatorSets[0].forEach((operator, id)=>{
+        // detune Sliders
+        let detuneDiv = document.querySelector("#detune");
+        let detuneInput = document.createElement('input');
+        detuneInput.type = 'number';
+        detuneInput.value = operator.detune;
+        detuneInput.addEventListener('change',()=>{
+            detuneInput.title = detuneInput.value;
+            operators.filter((o)=>o.rank==id).forEach((o)=>{
+                o.setDetune(parseFloat(detuneInput.value));
+            });
+        });
+        detuneDiv.appendChild(detuneInput);
+    });
+}
 
 function createOperatorsWaveformElements(){
     let operatorSets = voices.map(voice=>voice.operators);
@@ -57,7 +76,7 @@ function createOperatorsReleaseElements(){
         let releaseInput = document.createElement('input');
         releaseInput.type = 'range';
         releaseInput.title = '0.0';
-        releaseInput.min = 0.05;
+        releaseInput.min = 0.01;
         releaseInput.max = 3;
         releaseInput.step = 0.01;
         releaseInput.value = operator.releaseTime;
@@ -82,7 +101,7 @@ function createOperatorsSustainElements(){
         let sustainInput = document.createElement('input');
         sustainInput.type = 'range';
         sustainInput.title = '0.0';
-        sustainInput.min = 0.02;
+        sustainInput.min = 0.01;
         sustainInput.max = 1.0;
         sustainInput.step = 0.01;
         sustainInput.value = operator.sustainLevel;
@@ -106,7 +125,7 @@ function createOperatorsDecayElements(){
         let decayInput = document.createElement('input');
         decayInput.type = 'range';
         decayInput.title = '0.0';
-        decayInput.min = 0.05;
+        decayInput.min = 0.01;
         decayInput.max = 3;
         decayInput.step = 0.01;
         decayInput.value = operator.decayTime;
@@ -131,7 +150,7 @@ function createOperatorsAttackElements(){
         let attackInput = document.createElement('input');
         attackInput.type = 'range';
         attackInput.title = '0.0';
-        attackInput.min = 0.05;
+        attackInput.min = 0.01;
         attackInput.max = 3;
         attackInput.step = 0.01;
         attackInput.value = operator.attackTime;
@@ -303,7 +322,7 @@ class FMOperator {
 
         // Create Oscillator Node
         this.oscillator = this.audioContext.createOscillator();
-        this.detune = (Math.random() - 0.5) * 5;
+        this.detune = 0;
         this.oscillator.detune.setValueAtTime(this.detune, this.audioContext.currentTime);
         this.oscillator.type = type; // Default waveform is sine
         this.oscillator.frequency.setValueAtTime(this.baseFrequency*this.ratio, this.audioContext.currentTime);
@@ -323,6 +342,12 @@ class FMOperator {
         // Start the oscillator by default
         this.oscillator.start();
 
+    }
+
+    // set detune for this operator
+    setDetune(d){
+        this.detune = d;
+        this.oscillator.detune.setValueAtTime(this.detune, this.audioContext.currentTime);
     }
 
     // Set frequency for this operator
@@ -451,4 +476,5 @@ function initSynth(audioContext, outputNode){
   createOperatorsDecayElements();
   createOperatorsSustainElements();
   createOperatorsReleaseElements();
+  createOperatorsDetuneElements();
 }
