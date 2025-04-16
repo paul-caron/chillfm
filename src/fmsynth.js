@@ -239,10 +239,7 @@ function createOperatorsModMatrixElements(){
             });
         });
     });
-
-
 }
-
 
 function createOperatorsLevelElements(){
     let operatorSets = voices.map(voice=>voice.operators);
@@ -402,7 +399,7 @@ class FMOperator {
         const t = this.audioContext.currentTime;
         this.envelope.gain.cancelScheduledValues(t);
         this.envelope.gain.setValueAtTime(this.envelope.gain.value, t);
-        this.envelope.gain.linearRampToValueAtTime(1, t+0.01 + this.attackTime);
+        this.envelope.gain.linearRampToValueAtTime(1, t + this.attackTime);
         this.envelope.gain.linearRampToValueAtTime(this.sustainLevel, t + this.attackTime + this.decayTime);
     }
 
@@ -411,7 +408,7 @@ class FMOperator {
         const t = this.audioContext.currentTime;
         this.envelope.gain.cancelScheduledValues(t);
         this.envelope.gain.setValueAtTime(this.envelope.gain.value, t);
-        this.envelope.gain.linearRampToValueAtTime(0.000, t+0.01 + this.releaseTime);
+        this.envelope.gain.linearRampToValueAtTime(0.000, t + this.releaseTime);
     }
     disconnect(){
         this.envelope.disconnect();
@@ -477,9 +474,7 @@ class Voice{
             g.disconnect();
         })
     }
-
 };
-
 
 function initVoices(audioContext, outputNode){
     if(voices.length){
