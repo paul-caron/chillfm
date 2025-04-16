@@ -40,13 +40,35 @@ body {
 
 <h2>Chill FM Lab</h2>
 <hr/>
-<div id="synth">
+
 <div>
 <canvas id="oscilloscope"></canvas>
 </div>
+
+<hr/>
+
+
+<div id="octave">
+<h3>Octave</h3>
+<select id="octave-select" onchange="octave=this.value;" value="1">
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+</select>
+</div>
+
+<hr/>
+
+<div id="synth">
+
+
+
 <div id="master">
 <h3>Master</h3>
 </div>
+
 
 <hr/>
 
@@ -88,6 +110,11 @@ body {
 <div id="modmatrix">
 <h5>Mod Matrix</h5>
 </div>
+
+<div id="feedback">
+<h5>Feedback (on last operator)</h5>
+</div>
+
 <hr/>
 
 </div>

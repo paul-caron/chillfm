@@ -7,6 +7,28 @@ let nVoices = 10;
 let nOperatorsPerVoice = 4;
 let oscillatorTypes = ['sine','sine','sine','sine'];
 let tempSettings = [];
+let octave = 0;
+
+// HTML elements setup utils
+
+
+function createFeedbackElement(){
+    // feedback Slider
+    let feedbackDiv = document.querySelector("#feedback");
+    let feedbackInput = document.createElement('input');
+    feedbackInput.type = 'range';
+    feedbackInput.min = 0;
+    feedbackInput.max = 1000;
+    feedbackInput.step = 0.01;
+    feedbackInput.value = 0;
+    feedbackInput.addEventListener('change',()=>{
+        feedbackInput.title = feedbackInput.value;
+        voices.forEach(v=>{
+            v.feedbackGain.gain.setValueAtTime(feedbackInput.value, v.audioContext.currentTime);
+        });
+    });
+    feedbackDiv.appendChild(feedbackInput);
+}
 
 // HTML elements setup utils
 function createOperatorsDetuneElements(){
@@ -375,7 +397,7 @@ class FMOperator {
 
     // Trigger the envelope (Attack, Decay, Sustain, Release)
     triggerEnvelope(noteNumber) {
-        const baseFrequency = 110 * (2 ** (noteNumber/12));
+        const baseFrequency = 130.81 * (2 ** octave) * (2 ** (noteNumber/12));
         this.setBaseFrequency(baseFrequency);
         const t = this.audioContext.currentTime;
         this.envelope.gain.cancelScheduledValues(t);
@@ -412,6 +434,17 @@ class Voice{
             operator.rank = i;
             this.operators.push(operator);
         }
+
+        // feedback loop for the last operator
+        this.feedbackDelay = this.audioContext.createDelay();
+        this.feedbackDelay.delayTime.setValueAtTime(0.001, this.audioContext.currentTime);
+        this.feedbackGain = this.audioContext.createGain();
+        this.feedbackGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+        this.operators[3].envelope.connect(this.feedbackDelay);
+        this.feedbackDelay.connect(this.feedbackGain);
+        this.feedbackGain.connect(this.operators[3].oscillator.frequency);
+
+        // boolean flag to check if voice is in use or not
         this.playing = false;
     }
     // note trigger
@@ -477,4 +510,5 @@ function initSynth(audioContext, outputNode){
   createOperatorsSustainElements();
   createOperatorsReleaseElements();
   createOperatorsDetuneElements();
+  createFeedbackElement();
 }
