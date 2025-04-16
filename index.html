@@ -10,7 +10,7 @@ body {
 	background: linear-gradient(-45deg, #3e5, #abc, #555, #252);
 	background-size: 200% 400%;
 	animation: gradient 10s ease infinite;
-	height: 100vh;
+	padding-bottom: 5em;
 }
 
 #operator > div , canvas{
@@ -59,6 +59,11 @@ body {
 <option value="3">3</option>
 <option value="4">4</option>
 </select>
+</div>
+
+<div id="monophonic">
+<h3>Monophonic</h3>
+<input id="monophicInput" type="checkbox" onchange="mono=this.checked;">
 </div>
 
 <hr/>

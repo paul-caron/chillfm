@@ -1,18 +1,3 @@
-function getVoice(){
-   for(let i = 0 ; i < nVoices; i++){
-       let v = voices[i];
-       if(i.playing === false){
-          voices.splice(i,1); // remove voice
-          voices.push(v); // put voice at back of the queue
-          return v;
-       }
-   }
-   // if all voices are playing, pick first one
-   let v = voices.shift();
-   voices.push(v); // push at back of the queue
-   return v;
-}
-
 let pressedKeys = {};
 window.addEventListener('keyup', (event) => {
     let voice = pressedKeys[event.key] ;

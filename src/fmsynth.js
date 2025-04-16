@@ -8,6 +8,7 @@ let nOperatorsPerVoice = 4;
 let oscillatorTypes = ['sine','sine','sine','sine'];
 let tempSettings = [];
 let octave = 0;
+let mono = false;
 
 // HTML elements setup utils
 
@@ -507,3 +508,28 @@ function initSynth(audioContext, outputNode){
   createOperatorsDetuneElements();
   createFeedbackElement();
 }
+
+
+
+function getVoice(){
+   if(mono) return voices[0];
+
+   for(let i = 0 ; i < nVoices; i++){
+       let v = voices[i];
+       if(i.playing === false){
+          voices.splice(i,1); // remove voice
+          voices.push(v); // put voice at back of the queue
+          return v;
+       }
+   }
+   // if all voices are playing, pick first one
+   let v = voices.shift();
+   voices.push(v); // push at back of the queue
+   return v;
+}
+
+
+
+
+
+
