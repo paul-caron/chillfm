@@ -9,6 +9,7 @@ let oscillatorTypes = ['sine','sine','sine','sine'];
 let tempSettings = [];
 let octave = 0;
 let mono = false;
+let portamentoTime = 0;
 
 // HTML elements setup utils
 
@@ -373,7 +374,8 @@ class FMOperator {
     // Set frequency for this operator
     setBaseFrequency(frequency) {
         this.baseFrequency = frequency;
-        this.oscillator.frequency.setValueAtTime(this.baseFrequency * this.ratio, this.audioContext.currentTime);
+//        this.oscillator.frequency.setValueAtTime(this.baseFrequency * this.ratio, this.audioContext.currentTime + parseFloat(portamentoTime));
+        this.oscillator.frequency.linearRampToValueAtTime(this.baseFrequency * this.ratio, this.audioContext.currentTime + parseFloat(portamentoTime));
     }
 
     // Set frequency for this operator
