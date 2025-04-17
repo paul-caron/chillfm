@@ -1,7 +1,7 @@
 "use strict";
 
 // Globals
-
+let lfo;
 let voices = [];
 let nVoices = 10;
 let nOperatorsPerVoice = 4;
@@ -11,7 +11,74 @@ let octave = 0;
 let mono = false;
 let portamentoTime = 0;
 
+
+// LFO
+
+class LFO{
+    constructor(audioContext){
+        this.audioContext = audioContext;
+        this.oscillator = this.audioContext.createOscillator();
+        this.oscillator.type = 'sine';
+        this.gain = this.audioContext.createGain();
+        this.oscillator.connect(this.gain);
+        this.oscillator.frequency.setValueAtTime(0.001, this.audioContext.currentTime);
+        this.gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+        this.oscillator.start();
+    }
+    connect(operatorRank){
+        voices.map(v=>v.operators).flat().filter(o=>o.rank==operatorRank).forEach(o=>{lfo.gain.connect(o.oscillator.frequency);});
+    }
+    disconnect(operatorRank){
+        voices.map(v=>v.operators).flat().filter(o=>o.rank==operatorRank).forEach(o=>{lfo.gain.disconnect(o.oscillator.frequency);});
+    }
+};
+
+
 // HTML elements setup utils
+
+function createLFOElements(){
+    // lfo Slider
+    let lfoDiv = document.querySelector("#lfo");
+    let lfoSpeedInput = document.createElement('input');
+    lfoSpeedInput.type = 'range';
+    lfoSpeedInput.min = 0.01;
+    lfoSpeedInput.max = 20;
+    lfoSpeedInput.step = 0.01;
+    lfoSpeedInput.value = 0.01;
+    lfoSpeedInput.addEventListener('change',()=>{
+        lfoSpeedInput.title = lfoSpeedInput.value;
+        lfo.oscillator.frequency.setValueAtTime(lfoSpeedInput.value, lfo.audioContext.currentTime);
+    });
+
+    let lfoDepthInput = document.createElement('input');
+    lfoDepthInput.type = 'range';
+    lfoDepthInput.min = 0;
+    lfoDepthInput.max = 1000;
+    lfoDepthInput.step = 0.01;
+    lfoDepthInput.value = 0;
+    lfoDepthInput.addEventListener('change',()=>{
+        lfoDepthInput.title = lfoDepthInput.value;
+        lfo.gain.gain.setValueAtTime(lfoDepthInput.value, lfo.audioContext.currentTime);
+    });
+
+    for(let i=0;i<nOperatorsPerVoice;i++){
+        let lfoDestinationInput = document.createElement('input');
+        lfoDestinationInput.type = 'checkbox';
+        lfoDestinationInput.rank = i;
+        lfoDestinationInput.addEventListener('change',()=>{
+            if(lfoDestinationInput.checked){
+                lfo.connect(lfoDestinationInput.rank);
+            }else{
+                lfo.disconnect(lfoDestinationInput.rank);
+            }
+        });
+        lfoDiv.appendChild(lfoDestinationInput);
+    }
+
+    lfoDiv.appendChild(lfoSpeedInput);
+    lfoDiv.appendChild(lfoDepthInput);
+
+}
 
 
 function createFeedbackElement(){
@@ -374,7 +441,6 @@ class FMOperator {
     // Set frequency for this operator
     setBaseFrequency(frequency) {
         this.baseFrequency = frequency;
-//        this.oscillator.frequency.setValueAtTime(this.baseFrequency * this.ratio, this.audioContext.currentTime + parseFloat(portamentoTime));
         this.oscillator.frequency.linearRampToValueAtTime(this.baseFrequency * this.ratio, this.audioContext.currentTime + parseFloat(portamentoTime));
     }
 
@@ -497,6 +563,9 @@ function initSynth(audioContext, outputNode){
   // Init Voices
   initVoices(audioContext, oscilloscope);
 
+  // LFO
+  lfo = new LFO(audioContext);
+
   // HTML Elements Init
   createMasterElements();
   createOperatorsWaveformElements();
@@ -509,10 +578,11 @@ function initSynth(audioContext, outputNode){
   createOperatorsReleaseElements();
   createOperatorsDetuneElements();
   createFeedbackElement();
+  createLFOElements();
 }
 
 
-
+// voice allocator for polyphony
 function getVoice(){
    if(mono) return voices[0];
 
