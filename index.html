@@ -47,10 +47,11 @@ body {
 
 <hr/>
 
+<div id="settings">
 
 <div id="octave">
 <h3>Octave</h3>
-<select id="octave-select" onchange="octave=this.value;">
+<select id="octave-select" onchange="octave=this.value;" autocomplete="off">
 <option value="-2">-2</option>
 <option value="-1">-1</option>
 <option value="0" selected>0</option>
@@ -62,20 +63,21 @@ body {
 </div>
 <hr/>
 
+
 <div id="monophonic">
 <h3>Monophonic</h3>
-<input id="monophic-checkbox" type="checkbox" onchange="mono=this.checked;">
+<input id="monophic-checkbox" type="checkbox" onchange="mono=this.checked;" autocomplete="off">
 </div>
 
 <div id="portamento">
 <h3>Portamento (glide)</h3>
-<input id="portamento-input" type="range"  min="0" max="3" step="0.01" value="0" onchange="portamentoTime=this.value;">
+<input id="portamento-input" type="range"  min="0" max="3" step="0.01" value="0" onchange="portamentoTime=this.value;" autocomplete="off">
 </div>
 
 <hr/>
 
-<div id="synth">
 
+<div id="synth">
 
 
 <div id="master">
@@ -136,17 +138,19 @@ body {
 
 </div>
 </div>
+</div>
 
 <div id="patch-memory">
 <h3>Patch Memory</h3>
 <p>Save your sound design to be able to reload your settings later.</p>
 <h4>Saving Patch</h4>
 <button id="save-button" onclick="savePatch();">save</button>
-<input id="patch-name" placeholder="patch name"></input>
-<h4>Loading Patch</h4>
-<button id="load-button" onclick="loadPatch();">load</button>
+<input id="patch-name" placeholder="patch name" autocomplete="off"></input>
+<h4>Loading/Deleting Patch</h4>
 <select id="patches-select">
 </select>
+<button id="load-button" onclick="loadPatch();">load</button>
+<button id="delete-button" onclick="deletePatch();">delete</button>
 </div>
 
 <script src="src/oscilloscope.js"></script>

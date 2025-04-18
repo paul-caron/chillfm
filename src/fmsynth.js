@@ -29,7 +29,7 @@ class LFO{
         voices.map(v=>v.operators).flat().filter(o=>o.rank==operatorRank).forEach(o=>{lfo.gain.connect(o.oscillator.frequency);});
     }
     disconnect(operatorRank){
-        voices.map(v=>v.operators).flat().filter(o=>o.rank==operatorRank).forEach(o=>{lfo.gain.disconnect(o.oscillator.frequency);});
+        voices.map(v=>v.operators).flat().filter(o=>o.rank==operatorRank).forEach(o=>{this.gain.disconnect(o.oscillator.frequency);});
     }
 };
 
@@ -69,6 +69,7 @@ function createLFOElements(){
             if(lfoDestinationInput.checked){
                 lfo.connect(lfoDestinationInput.rank);
             }else{
+                lfo.connect(lfoDestinationInput.rank);
                 lfo.disconnect(lfoDestinationInput.rank);
             }
         });
@@ -559,6 +560,14 @@ function initVoices(audioContext, outputNode){
 function initSynth(audioContext, outputNode){
   let inputs = Array.from(document.querySelectorAll('#synth input, #synth select, #synth br'));
   inputs.forEach(i=>{i.outerHTML = ''});
+
+  if(lfo){
+    lfo.oscillator.stop();
+    lfo.oscillator.disconnect();
+    lfo.gain.disconnect();
+  }
+
+  lfo = null;
 
   // Init Voices
   initVoices(audioContext, oscilloscope);
