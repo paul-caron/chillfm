@@ -25,11 +25,13 @@ function savePatch(){
     let selectValues = selectInputs.map(i=>i.value);
     let checkboxInputs = Array.from(document.querySelectorAll("#settings input[type=checkbox]"));
     let checkboxValues = checkboxInputs.map(i=>i.checked);
+    let numberInputs = Array.from(document.querySelectorAll("#settings input[type=number]"));
+    let numberValues = numberInputs.map(i=>i.value);
 
     let patches = JSON.parse(localStorage.getItem('patches'));
     if(!patches)
         patches = [];
-    patches.push({"name": patchName, "settings": {"range":rangeValues, "select": selectValues, "checkbox": checkboxValues},});
+    patches.push({"name": patchName, "settings": {"range":rangeValues, "select": selectValues, "checkbox": checkboxValues, "number": numberValues,},});
     localStorage.setItem('patches', JSON.stringify(patches));
     updatePatchesList();
 }
@@ -37,7 +39,7 @@ function savePatch(){
 function loadPatch(){
     let patch = document.querySelector("#patch-memory select");
     let settings = JSON.parse(patch.value);
-    let {range, select, checkbox} = settings;
+    let {range, select, checkbox, number} = settings;
 
     let rangeInputs = Array.from(document.querySelectorAll("#settings input[type=range]"));
     rangeInputs.forEach((r,i)=>{
@@ -54,6 +56,12 @@ function loadPatch(){
     let checkboxInputs = Array.from(document.querySelectorAll("#settings input[type=checkbox]"));
     checkboxInputs.forEach((c,i)=>{
         c.checked = checkbox[i];
+        c.dispatchEvent(new Event('change'));
+    });
+
+    let numberInputs = Array.from(document.querySelectorAll("#settings input[type=number]"));
+    numberInputs.forEach((c,i)=>{
+        c.value = number[i];
         c.dispatchEvent(new Event('change'));
     });
 
