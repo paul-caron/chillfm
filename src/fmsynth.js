@@ -3,7 +3,7 @@
 // Globals
 let lfo;
 let voices = [];
-let nVoices = 10;
+let nVoices = 5;
 let nOperatorsPerVoice = 4;
 let oscillatorTypes = ['sine','sine','sine','sine'];
 let tempSettings = [];
@@ -141,7 +141,7 @@ function createOperatorsWaveformElements(){
             oscillatorTypes[id] = waveformSelect.value;
             //save current settings into tempSettings
             let inputs = Array.from(document.querySelectorAll("#synth input"));
-            tempSettings = inputs.map(i=>i.value);
+            tempSettings = inputs.map(i=>{return {'value':i.value,'checked':i.checked};});
 
             //redo entire synth after waveform change because oscillator types cannot be changed after creation
             initSynth(operator.master.audioContext, oscilloscope);
@@ -149,7 +149,8 @@ function createOperatorsWaveformElements(){
             //reload settings from tempSettings
             inputs = Array.from(document.querySelectorAll("#synth input"));
             inputs.forEach((input,i)=>{
-                input.value = tempSettings[i];
+                input.value = tempSettings[i].value;
+                input.checked = tempSettings[i].checked;
                 input.dispatchEvent(new Event('change'));
             });
 
