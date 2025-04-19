@@ -33,8 +33,8 @@ function keyOn(key){
 
 function keyOff(key){
     let voice = pressedKeys[key] ;
-    voice.rel();
     pressedKeys[key] = null;
+    if(voice) voice.rel();
 }
 
 window.addEventListener('keyup', (event) => {
@@ -48,6 +48,9 @@ window.addEventListener('keydown', (event) => {
     if(pressedKeys[event.key]) return;
     keyOn(event.key);
     if(recording){
+        if(noteEvents.length === 0){
+            recordingStartTime = voices[0].audioContext.currentTime;
+        }
         noteEvents.push(new NoteEvent('on', event.key, voices[0].audioContext.currentTime - recordingStartTime));
     }
 });

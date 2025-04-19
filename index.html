@@ -157,7 +157,7 @@ body {
 
 <div id="looper">
 <h3>Loop Recorder</h3>
-<button id="record-button" onclick="record();">record</button>
+<button id="record-button" onclick="this.children[0].checked=!this.children[0].checked;record();">record <input type="checkbox" style="accent-color:green;"></button>
 <button id="play-button" onclick="play();">play</button>
 <button id="stop-button" onclick="stop();">stop</button>
 </div>

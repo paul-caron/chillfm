@@ -1,4 +1,5 @@
 let recording = false;
+let playing = false;
 let recordingStartTime = 0;
 let recordingStopTime = 0;
 let noteEvents = [];
@@ -24,10 +25,13 @@ function record(){
 
 function play(){
     if(recording) return;
+    if(playing) return;
+    playing = true;
     noteEvents.forEach(e=>{
         let {noteEvent, key, timestamp} = e;
         if(noteEvent == 'on'){
             setTimeout(()=>{
+                if(!playing) return;
                 keyOn(key);
             }, timestamp * 1000);
         }else if(noteEvent == 'off'){
@@ -37,10 +41,12 @@ function play(){
         }
     });
     setTimeout(()=>{
+        if(!playing) return;
+        playing = false;
         play();
     }, (recordingStopTime - recordingStartTime) * 1000);
 }
 
 function stop(){
-
+    playing = false;
 }
