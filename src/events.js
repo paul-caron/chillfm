@@ -1,14 +1,8 @@
 let pressedKeys = {};
-window.addEventListener('keyup', (event) => {
-    let voice = pressedKeys[event.key] ;
-    voice.rel();
-    pressedKeys[event.key] = null;
-});
 
-window.addEventListener('keydown', (event) => {
-    if(pressedKeys[event.key]) return;
+function keyToNoteNumber(key){
     let noteNumber = 0;
-    switch(event.key){
+    switch(key){
         case 'a': noteNumber = 0;break;
         case 'w': noteNumber = 1;break;
         case 's': noteNumber = 2;break;
@@ -27,8 +21,34 @@ window.addEventListener('keydown', (event) => {
         case 'p': noteNumber = 15;break;
         case ';': noteNumber = 16;break;
     }
+    return noteNumber;
+}
+
+function keyOn(key){
+    let noteNumber = keyToNoteNumber(key);
     let voice = getVoice();
-    pressedKeys[event.key] = voice;
+    pressedKeys[key] = voice;
     voice.trig(noteNumber);
+}
+
+function keyOff(key){
+    let voice = pressedKeys[key] ;
+    voice.rel();
+    pressedKeys[key] = null;
+}
+
+window.addEventListener('keyup', (event) => {
+    keyOff(event.key);
+    if(recording){
+        noteEvents.push(new NoteEvent('off', event.key, voices[0].audioContext.currentTime - recordingStartTime));
+    }
+});
+
+window.addEventListener('keydown', (event) => {
+    if(pressedKeys[event.key]) return;
+    keyOn(event.key);
+    if(recording){
+        noteEvents.push(new NoteEvent('on', event.key, voices[0].audioContext.currentTime - recordingStartTime));
+    }
 });
 

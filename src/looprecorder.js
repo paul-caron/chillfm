@@ -1,24 +1,44 @@
+let recording = false;
+let recordingStartTime = 0;
+let recordingStopTime = 0;
 let noteEvents = [];
 
-const NoteEvent = {
-    NoteOn: 0,
-    NoteOff: 1,
-};
-
-class noteEvent{
-    constructor(noteEvent, noteNumber, timestamp){
-        this.noteEvent = noteEvent;    //NoteOn or NoteOff
-        this.noteNumber = noteNumber;
+class NoteEvent{
+    constructor(noteEvent, key, timestamp){
+        this.noteEvent = noteEvent;    //'on' or 'off'
+        this.key = key;
         this.timestamp = timestamp;
     }
 }
 
 function record(){
-    noteEvents = [];
+    if(!recording){
+        noteEvents = [];
+        recordingStartTime = voices[0].audioContext.currentTime;
+        recording = true;
+    }else if(recording){
+        recording = false;
+        recordingStopTime = voices[0].audioContext.currentTime;
+    }
 }
 
 function play(){
-
+    if(recording) return;
+    noteEvents.forEach(e=>{
+        let {noteEvent, key, timestamp} = e;
+        if(noteEvent == 'on'){
+            setTimeout(()=>{
+                keyOn(key);
+            }, timestamp * 1000);
+        }else if(noteEvent == 'off'){
+            setTimeout(()=>{
+                keyOff(key);
+            }, timestamp * 1000);
+        }
+    });
+    setTimeout(()=>{
+        play();
+    }, (recordingStopTime - recordingStartTime) * 1000);
 }
 
 function stop(){
